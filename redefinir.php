@@ -55,7 +55,7 @@
                                                     </button>
                                                 
                                                 </div>";
-                                       header("refresh: 2; http://localhost/Teste-Curso/redefinir.php?token=".$token);
+                                       header("refresh: 2; http://localhost/Esqueci_Minha_Senha/redefinir.php?token=".$token);
                                        exit;
                                     }
 
