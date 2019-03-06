@@ -1,9 +1,9 @@
 <?php
 
-try
-{
-	$pdo = new PDO("mysql:host=localhost;dbname=projeto_esqueciasenha",'root', 'mysql');
-}catch(PDOException $e)
-{
-	die($e->getMessage());
-}
+define('HOST', 'localhost');
+define('DB', 'projeto_esqueciasenha');
+define('USER', 'root');
+define('PASS', 'mysql');
+
+
+define('LINK', 'http://localhost/Esqueci_Minha_Senha/redefinir.php?token=');

@@ -1,4 +1,7 @@
-<?php require 'config.php'; ?>
+<?php
+require 'Class/Redefinir.php';
+$senha = new Redefinir();
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,93 +25,52 @@
             <div class="card-body">
                 <?php
 
-                if(isset($_GET['token']))
+                    if(!empty($_GET['token']))
                     {
                         $token = $_GET['token'];
-
-                        $sql = $pdo->prepare('SELECT * FROM usuarios_token WHERE hash = ? AND used = 0 AND expirado_em > NOW()');
-                        $sql->execute(array($token));
-
-                        if($sql->rowCount() > 0)
+                        $verificar = $senha->verificaToken($token);
+                        if($verificar)
                         {
-                            $sql = $sql->fetch();
-                            $id = $sql['id_usuarios'];
-
                             if(isset($_POST['acao']) && !empty($_POST['senha']))
                             {
-                                $senha = md5(addslashes($_POST['senha']));
+                                $senhaPost = md5(addslashes($_POST['senha']));
+                                $senhaNova = $senha->insertSenha($senhaPost);
 
-                                $sql = 'SELECT * FROM usuarios WHERE senha = :senha';
-                                $sql = $pdo->prepare($sql);
-                                $sql->bindValue(":senha", $senha);
-                                $sql->execute();
-                                $sql = $sql->fetch();
-                                $senha_banco = $sql['senha'];
-
-                                    if ($senha_banco == $senha)
+                                if($senhaNova)
+                                {
+                                    echo "<div class='alert alert-success'><div class='h5 text-center'>Senha atualizada com sucesso!</div>";
+                                    $estado = $senha->updateEstado();
+                                    if($estado)
                                     {
-                                        echo "<div class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\">
-                                                    A sua senha já existe ! <br />Tente novamente !
-                                                    
-                                                    <button type=\"button\" class=\"close\" data-dismiss='alert' aria-label=\"Close\">
-                                                        <span aria-hidden=\"true\">&times;</span>
-                                                    </button>
-                                                
-                                                </div>";
-                                       header("refresh: 2; http://localhost/Esqueci_Minha_Senha/redefinir.php?token=".$token);
-                                       exit;
+                                        header('refresh: 2 index.php');
+                                        exit;
                                     }
 
-                                $sql = 'UPDATE usuarios SET senha = :senha WHERE id = :id';
-                                $sql = $pdo->prepare($sql);
-                                $sql->bindValue(":senha", $senha);
-                                $sql->bindValue(":id", $id);
-                                $sql->execute();
-
-                                $sql = 'UPDATE usuarios_token SET used = 1 WHERE id_usuarios = :id_usuarios';
-                                $sql = $pdo->prepare($sql);
-                                $sql->bindValue(":id_usuarios", $id);
-                                $sql->execute();
-
-                                echo "<div class=\"alert alert-success alert-dismissible fade show\" role=\"alert\">
-                                        A sua senha foi redefinida com sucesso !
-                                        
-                                        <button type=\"button\" class=\"close\" data-dismiss='alert' aria-label=\"Close\">
-                                          <span aria-hidden=\"true\">&times;</span>
-                                        </button>
-                                    
-                                    </div>";
-
-                                header('refresh: 3; index.php');
-                                exit;
-
-                        }
+                                }else
+                                {
+                                    return false;
+                                }
+                            }
                             ?>
                             <a href="index.php"><button class="btn btn-danger" style="margin-bottom: 15px;">Voltar</button></a>
-                            <form method="post" class="form text-center">
-                                <input class="form-control" type="password" name="senha" required  placeholder="Senha nova..."/><br/>
 
-                                <input class="btn btn-outline-success col-md-6 text-center" type="submit" name="acao" value="Redefinir" />
-                            </form>
+                            <form method="post" class="form text-center">
+                                    <input class="form-control" type="password" name="senha" required  placeholder="Senha nova..."/><br/>
+
+                                    <input class="btn btn-outline-success col-md-6 text-center" type="submit" name="acao" value="Redefinir" />
+                                </form>
                             <?php
                         }else
                         {
-                            echo "<div class=\"alert alert-info alert-dismissible fade show\" role=\"alert\">
-                                        Token não existe ou já foi utilizado !
-                                        
-
-                                        <button type=\"button\" class=\"close\" data-dismiss='alert' aria-label=\"Close\">
-                                          <span aria-hidden=\"true\">&times;</span>
-                                        </button>
-                                        
-                                 </div>";
-
-                                 header('refresh: 2; index.php');
+                            echo "<div class='alert alert-warning'><div class='h5 text-center'>Token já está expirado ou não existe</div>";
+                            header('refresh: 2 index.php');
+                            exit;
                         }
-
                     }
 
                 ?>
+
+
 
             </div>
         </div>

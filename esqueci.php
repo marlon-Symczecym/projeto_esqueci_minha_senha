@@ -1,4 +1,3 @@
-<?php require 'config.php'; ?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -24,54 +23,37 @@
             <div class="card-body">
 
                 <?php
+                require 'Class/Redefinir.php';
+                $senha = new Redefinir();
 
-                    if(isset($_POST['acao']) && !empty($_POST['email']))
+                if(isset($_POST['acao']) && !empty($_POST['email']))
+                {
+                    $email = $_POST['email'];
+                    $verificar = $senha->verificaEmail($email);
+
+                    if($verificar)
                     {
-                        $email = $_POST['email'];
+                        echo $senha->setLink();
+                        $senha->insertToken();
 
-                        $sql = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
-                        $sql->execute(array($email));
-
-                        if($sql->rowCount() > 0)
-                        {
-                            $sql = $sql->fetch();
-                            $id = $sql['id'];
-
-                            $token = md5(time().rand(0, 999).rand(0,9999));
-                            $link = "http://localhost/Esqueci_Minha_Senha/redefinir.php?token=".$token;
-
-                            $sql = "INSERT INTO usuarios_token (id_usuarios, hash, expirado_em) VALUES (:id_usuarios,:hash, :expirado_em)";
-                            $sql = $pdo->prepare($sql);
-                            $sql->bindValue(":hash", $token);
-                            $sql->bindValue(":expirado_em", date('Y-m-d H:i' ,strtotime('+2 months')));
-                            $sql->bindValue(":id_usuarios", $id);
-                            $sql->execute();
-
-                            $mensagem = "<div class='alert alert-success'><div class='h5 text-center'>Clique no link para alterar a sua senha</div><br/>".
-                                        "<a target='_blank' href='$link'>$link</a></div>";
-
-                            echo $mensagem;
-                            exit;
-
-                        }else
-                        {
-                            echo "<div class=\"alert alert-info alert-dismissible fade show text-center\" role=\"alert\">
+                        exit;
+                    }else
+                    {
+                        echo "<div class=\"alert alert-info alert-dismissible fade show text-center\" role=\"alert\">
                                         E-mail não existe
                                         <button type=\"button\" class=\"close\" data-dismiss='alert' aria-label=\"Close\">
                                           <span aria-hidden=\"true\">&times;</span>
                                         </button>
                                  </div>";
-                        }
                     }
+
+                }
 
                 ?>
                 <a href="index.php"><button class="btn btn-danger" style="margin-bottom: 15px;">Voltar</button></a>
                 <form method="post" class="form text-center">
-                    
 
-                 
                     <input class="form-control" type="email" name="email" required  placeholder="E-mail..."/><br/>
-
 
                     <input class="btn btn-outline-success col-md-6" type="submit" name="acao" value="Verificar" />
                 </form>
